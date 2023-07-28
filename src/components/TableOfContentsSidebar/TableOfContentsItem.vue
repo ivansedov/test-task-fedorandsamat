@@ -10,7 +10,10 @@
       </svg>
     </button>
     <a
-      :class="[classListLink, activeListItem === props.item.key ? 'active' : '']"
+      :class="[
+        classListLink,
+        activeListItem === props.item.key ? 'active' : '',
+      ]"
       href="#"
       >{{ props.item.name }}</a
     >
@@ -20,9 +23,9 @@
       :style="{ paddingLeft: `${props.item.level * 16}px` }"
     >
       <TableOfContentsItem
-        v-for="(child, index) in children"
-        :key="child.key"
-        :item="child"
+        v-for="(childKey, index) in props.item.childPageKeys"
+        :key="childKey"
+        :item="props.flattenedPages.find((page) => page.key === childKey)"
         :index="index"
         :classListWithChild="'sidebar__list-with-child'"
         :classListItem="'sidebar__list-item'"
@@ -37,8 +40,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
-import { Page } from "@/types/Page";
+import { ref, computed } from 'vue';
+import { Page } from '@/types/Page';
 
 const props = defineProps({
   item: {
@@ -57,7 +60,7 @@ const props = defineProps({
   },
   activeListItem: {
     type: String,
-    default: "",
+    default: '',
   },
   classListBtn: {
     type: String,
@@ -72,13 +75,13 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-  (event: "update:activeListItem", value: string): void;
+  (event: 'update:activeListItem', value: string): void;
 }>();
 
 const childPages = ref([] as Page[]);
 
 const isOpen = computed(() =>
-  childPages.value.some((page) => page.key === props.item.key)
+  childPages.value.some((page) => page.key === props.item.key),
 );
 
 const toggleExpanded = (item: Page) => {
@@ -91,19 +94,9 @@ const toggleExpanded = (item: Page) => {
 };
 
 const handleListItemClick = (item: Page) => {
-  emit("update:activeListItem", item.key);
+  emit('update:activeListItem', item.key);
   if (item.childPageKeys && item.childPageKeys.length > 0) {
     toggleExpanded(item);
   }
 };
-
-const children = computed(() => {
-  if (props.item.childPageKeys) {
-    return props.item.childPageKeys
-      .map((key) => props.flattenedPages.find((page) => page.key === key) as Page)
-      .filter((page) => page !== undefined);
-  } else {
-    return [];
-  }
-});
 </script>
